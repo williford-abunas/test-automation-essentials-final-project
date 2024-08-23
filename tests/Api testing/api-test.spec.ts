@@ -26,6 +26,31 @@ test.describe('Api Testing with Playwright', () => {
     await apiContext.dispose()
   })
 
+  // This test will not use the global `apiContext`
+  test('Loggin in gets accessToken', async () => {
+    // Create a separate API context just for this test
+    const loginContext: APIRequestContext = await request.newContext({
+      baseURL: 'https://simple-books-api.glitch.me',
+    })
+
+    const response = await loginContext.post('/api-clients', {
+      data: {
+        clientName: 'TestClient',
+        clientEmail: `testclient${Date.now()}@example.com`,
+      },
+    })
+
+    expect(response.ok()).toBeTruthy()
+    const body = await response.json()
+    const accessToken = body.accessToken
+    expect(accessToken).toBeTruthy()
+
+    // Dispose of the local context after the test
+    await loginContext.dispose()
+  })
+
+  test('Logging in gets accessToken', async () => {})
+
   test('GET /books', async () => {
     const response = await apiContext.get('/books')
     expect(response.ok()).toBeTruthy()
@@ -95,5 +120,41 @@ test.describe('Api Testing with Playwright', () => {
     const body = await response.json()
     orderId = body.orderId
     expect(orderId).toBeTruthy()
+  })
+
+  test('Get order details', async () => {
+    const response = await apiContext.post('/orders', {
+      data: {
+        bookId: 1,
+        customerName: 'Will Abunas',
+      },
+    })
+
+    expect(response.status()).toBe(201)
+    const body = await response.json()
+    orderId = body.orderId
+    expect(orderId).toBeTruthy()
+
+    const response1 = await apiContext.get(`/orders/${orderId}`)
+    const body1 = await response1.json()
+    expect(body1.id).toEqual(orderId)
+    expect(body1.customerName).toEqual('Will Abunas')
+  })
+
+  test('delete order', async () => {
+    const response = await apiContext.post('/orders', {
+      data: {
+        bookId: 1,
+        customerName: 'Will Abunas',
+      },
+    })
+
+    expect(response.status()).toBe(201)
+    const body = await response.json()
+    orderId = body.orderId
+    expect(orderId).toBeTruthy()
+
+    const response1 = await apiContext.delete(`/orders/${orderId}`)
+    expect(response1.status()).toBe(204)
   })
 })
