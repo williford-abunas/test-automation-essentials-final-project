@@ -13,7 +13,7 @@ test.describe('Api Testing with Playwright', () => {
     available: boolean
   }
 
-  test.beforeAll(async ({ playwright }) => {
+  test.beforeAll(async () => {
     apiContext = await request.newContext({
       baseURL: 'https://simple-books-api.glitch.me',
       extraHTTPHeaders: {
@@ -48,8 +48,6 @@ test.describe('Api Testing with Playwright', () => {
     // Dispose of the local context after the test
     await loginContext.dispose()
   })
-
-  test('Logging in gets accessToken', async () => {})
 
   test('GET /books', async () => {
     const response = await apiContext.get('/books')
