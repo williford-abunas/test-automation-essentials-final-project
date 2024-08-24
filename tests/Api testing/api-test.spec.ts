@@ -27,7 +27,7 @@ test.describe('Api Testing with Playwright', () => {
   })
 
   // This test will not use the global `apiContext`
-  test('Loggin in gets accessToken', async () => {
+  test('Logging in gets accessToken', async () => {
     // Create a separate API context just for this test
     const loginContext: APIRequestContext = await request.newContext({
       baseURL: 'https://simple-books-api.glitch.me',
