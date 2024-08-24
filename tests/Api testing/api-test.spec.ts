@@ -3,8 +3,7 @@ import { test, expect, request, APIRequestContext } from '@playwright/test'
 test.describe('Api Testing with Playwright', () => {
   let apiContext: APIRequestContext
   let orderId: number
-  const token =
-    'b81998b8a28636557d6f06db3bd7ebbc2096351ff4dcf85d8158aa2f2d1a15c0'
+  let token: string
 
   type Book = {
     id: number
@@ -16,24 +15,9 @@ test.describe('Api Testing with Playwright', () => {
   test.beforeAll(async () => {
     apiContext = await request.newContext({
       baseURL: 'https://simple-books-api.glitch.me',
-      extraHTTPHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-  })
-
-  test.afterAll(async () => {
-    await apiContext.dispose()
-  })
-
-  // This test will not use the global `apiContext`
-  test('Logging in gets accessToken', async () => {
-    // Create a separate API context just for this test
-    const loginContext: APIRequestContext = await request.newContext({
-      baseURL: 'https://simple-books-api.glitch.me',
     })
 
-    const response = await loginContext.post('/api-clients', {
+    const response = await apiContext.post('/api-clients', {
       data: {
         clientName: 'TestClient',
         clientEmail: `testclient${Date.now()}@example.com`,
@@ -42,11 +26,12 @@ test.describe('Api Testing with Playwright', () => {
 
     expect(response.ok()).toBeTruthy()
     const body = await response.json()
-    const accessToken = body.accessToken
-    expect(accessToken).toBeTruthy()
+    token = body.accessToken
+    expect(token).toBeTruthy()
+  })
 
-    // Dispose of the local context after the test
-    await loginContext.dispose()
+  test.afterAll(async () => {
+    await apiContext.dispose()
   })
 
   test('GET /books', async () => {
@@ -108,6 +93,9 @@ test.describe('Api Testing with Playwright', () => {
 
   test('Submit a new order', async () => {
     const response = await apiContext.post('/orders', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       data: {
         bookId: 1,
         customerName: 'Will Abunas',
@@ -122,6 +110,9 @@ test.describe('Api Testing with Playwright', () => {
 
   test('Get order details', async () => {
     const response = await apiContext.post('/orders', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       data: {
         bookId: 1,
         customerName: 'Will Abunas',
@@ -133,7 +124,11 @@ test.describe('Api Testing with Playwright', () => {
     orderId = body.orderId
     expect(orderId).toBeTruthy()
 
-    const response1 = await apiContext.get(`/orders/${orderId}`)
+    const response1 = await apiContext.get(`/orders/${orderId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
     const body1 = await response1.json()
     expect(body1.id).toEqual(orderId)
     expect(body1.customerName).toEqual('Will Abunas')
@@ -141,6 +136,9 @@ test.describe('Api Testing with Playwright', () => {
 
   test('delete order', async () => {
     const response = await apiContext.post('/orders', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       data: {
         bookId: 1,
         customerName: 'Will Abunas',
@@ -152,7 +150,11 @@ test.describe('Api Testing with Playwright', () => {
     orderId = body.orderId
     expect(orderId).toBeTruthy()
 
-    const response1 = await apiContext.delete(`/orders/${orderId}`)
+    const response1 = await apiContext.delete(`/orders/${orderId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
     expect(response1.status()).toBe(204)
   })
 })
