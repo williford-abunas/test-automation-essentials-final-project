@@ -24,6 +24,10 @@ export class ProductsPage {
   }
 
   // Methods ==========================================================================
+  // Navigate to products page
+  async navigate() {
+    await this.page.goto('https://react-shopping-cart-67954.firebaseapp.com/')
+  }
   // Filter by size
   async selectSize(size: string) {
     const selector = this.getSizeSelector(size)
