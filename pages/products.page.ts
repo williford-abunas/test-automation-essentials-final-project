@@ -25,7 +25,7 @@ export class ProductsPage {
 
   // Methods ==========================================================================
   // Navigate to products page
-  async navigate() {
+  async navigateToShop() {
     await this.page.goto('https://react-shopping-cart-67954.firebaseapp.com/')
   }
   // Filter by size
