@@ -50,9 +50,16 @@ export class ProductsPage {
   }
 
   async clickAddToCartButton(index: number) {
-    await this.page.waitForLoadState('domcontentloaded')
-    await this.addToCartButtons.nth(index).waitFor({ state: 'visible' })
-    await this.addToCartButtons.nth(index).click()
+    // await this.page.waitForLoadState('domcontentloaded')
+    const addToCartButton = this.addToCartButtons.nth(index)
+    await addToCartButton.waitFor({ state: 'visible' })
+    // Ensure button is enabled, evaluate executes a fn in the browser context to interact w/ DOM
+    await this.page.waitForFunction(
+      async (btn) =>
+        !(await btn.evaluate((el: HTMLElement) => el.hasAttribute('disabled'))),
+      addToCartButton
+    )
+    await addToCartButton.click()
   }
 
   async clickCheckoutButton() {
