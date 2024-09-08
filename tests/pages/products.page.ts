@@ -7,6 +7,7 @@ const baseURL = process.env.BASE_URL
 console.log(baseURL)
 
 export class ProductsPage {
+  // Variable declarations
   readonly page: Page
   readonly addToCartButtons: Locator
   readonly closeCheckoutButton: Locator
@@ -18,21 +19,6 @@ export class ProductsPage {
   readonly sizeFilter: (size: string) => Locator
   readonly subtractButton: Locator
   readonly addButton: Locator
-
-  // Define selectors ===============================================================
-  // private getSizeSelector(size: string): string {
-  //   return `.checkmark:has-text("${size}")`
-  // }
-
-  // private getProductCountLocator() {
-  //   return this.page.locator('text=/\\d+ Product\\(s\\) found/')
-  // }
-
-  // private getCartQuantityLocator() {
-  //   return this.page.locator('.sc-1h98xa9-3[title="Products in cart quantity"]')
-  // }
-
-  // private addToCartBtn = 'role=button[name="Add to cart"]'
 
   // Constructor to initialize the page object with a Playwright page ===============
   constructor(page: Page) {
@@ -53,27 +39,42 @@ export class ProductsPage {
   }
 
   // Methods ==========================================================================
-  // Navigate to products page
-  // async navigateToShop() {
-  //   await this.page.goto(baseURL)
-  // }
-  // // Filter by size
-  // async selectSize(size: string) {
-  //   const selector = this.getSizeSelector(size)
-  //   await this.page.click(selector)
-  // }
-  // // Assert product quantitiy found
-  // async assertProductCount(expectedCount: number) {
-  //   const locator = this.getProductCountLocator()
-  //   await expect(locator).toHaveText(`${expectedCount} Product(s) found`)
-  // }
-  // // Assert quantity in cart
-  // async assertCartQuantity(expectedQuantity: number) {
-  //   const locator = this.getCartQuantityLocator()
-  //   await expect(locator).toHaveText(`${expectedQuantity}`)
-  // }
-  // // Adding to cart
-  // async addToCart() {
-  //   await this.page.click(this.addToCartBtn)
-  // }
+
+  async navigateToShop() {
+    if (!baseURL) {
+      console.log('BASE_URL is not defined.')
+      return
+    }
+
+    await this.page.goto(baseURL)
+  }
+
+  async clickAddToCartButton(index: number) {
+    await this.page.waitForLoadState('domcontentloaded')
+    await this.addToCartButtons.nth(index).waitFor({ state: 'visible' })
+    await this.addToCartButtons.nth(index).click()
+  }
+
+  async clickCheckoutButton() {
+    await this.checkoutButton.waitFor({ state: 'visible' })
+    await this.checkoutButton.click()
+  }
+
+  async clickCloseCheckoutButton() {
+    await this.closeCheckoutButton.waitFor({ state: 'visible' })
+    await this.closeCheckoutButton.click()
+  }
+
+  async getItemsAmount() {
+    return await this.addToCartButtons.count()
+  }
+
+  async clickFilterBySize(size: string) {
+    await this.page.waitForSelector(`text=${size}`, { state: 'visible' })
+    await this.sizeFilter(size).click()
+  }
+
+  async fetchCartAmount() {
+    return await this.cartAmount.textContent()
+  }
 }
