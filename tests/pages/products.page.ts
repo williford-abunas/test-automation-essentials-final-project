@@ -35,7 +35,7 @@ export class ProductsPage {
     this.subtractButton = page.getByRole('button', { name: '-', exact: true })
     this.addButton = page.getByRole('button', { name: '+', exact: true })
     this.sizeFilter = (size: string) =>
-      page.locator(`.checkmark:has-text(${size})`)
+      page.getByText(`${size}`, { exact: true })
   }
 
   // Methods ==========================================================================
