@@ -21,4 +21,24 @@ test.describe('E commerce web app', () => {
       expect(itemCount).toBe(2)
     })
   })
+
+  test('API - Validate two shirts with size S', async ({ request }) => {
+    // Fetch products from API
+    const response = await request.get(
+      'https://react-shopping-cart-67954.firebaseio.com/products.json',
+      { headers: { Accept: 'application/json' } }
+    )
+    // Validate the response & parse it
+    expect(response.status()).toBe(200)
+    const responseBody = (await response.json()) as {
+      products: { availableSizes: string[]; title: string }[]
+    }
+    // Filter product by size S
+    const sizeSProducts = responseBody.products.filter((prod) =>
+      prod.availableSizes.includes('S')
+    )
+    // Validate API response count
+    expect(sizeSProducts.length).toBe(2)
+    console.log(responseBody)
+  })
 })
