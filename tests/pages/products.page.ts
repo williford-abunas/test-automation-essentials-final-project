@@ -13,12 +13,13 @@ export class ProductsPage {
   readonly closeCheckoutButton: Locator
   readonly cartQuantity: Locator
   readonly productPriceTexts: Locator
-  readonly cartAmount: Locator
+  readonly cartButton: Locator
   readonly productCountText: Locator
   readonly checkoutButton: Locator
   readonly sizeFilter: (size: string) => Locator
   readonly subtractButton: Locator
   readonly addButton: Locator
+  readonly removeButton: Locator
 
   // Constructor to initialize the page object with a Playwright page ===============
   constructor(page: Page) {
@@ -26,16 +27,17 @@ export class ProductsPage {
     this.addToCartButtons = page.getByRole('button', { name: 'Add to cart' })
     this.closeCheckoutButton = page.getByRole('button', { name: 'X' })
     this.checkoutButton = page.getByRole('button', { name: 'Checkout' })
-    this.cartQuantity = page.locator(
-      '.sc-1h98xa9-3[title="Products in cart quantity"]'
-    )
+    this.cartQuantity = page.locator('.sc-1h98xa9-3')
     this.productPriceTexts = page.locator('.sc-11uohgb-4 p')
-    this.cartAmount = page.locator('.sc-1h98xa9-9.jzywDV')
     this.productCountText = page.locator('text=/\\d+ Product\\(s\\) found/')
     this.subtractButton = page.getByRole('button', { name: '-', exact: true })
     this.addButton = page.getByRole('button', { name: '+', exact: true })
     this.sizeFilter = (size: string) =>
       page.getByText(`${size}`, { exact: true })
+    this.removeButton = page.locator('button[title="remove product from cart"]')
+    this.cartButton = page.locator(
+      'button:has(div[title="Products in cart quantity"])'
+    )
   }
 
   // Methods ==========================================================================
@@ -53,12 +55,6 @@ export class ProductsPage {
     // await this.page.waitForLoadState('domcontentloaded')
     const addToCartButton = this.addToCartButtons.nth(index)
     await addToCartButton.waitFor({ state: 'visible' })
-    // Ensure button is enabled, evaluate executes a fn in the browser context to interact w/ DOM
-    await this.page.waitForFunction(
-      async (btn) =>
-        !(await btn.evaluate((el: HTMLElement) => el.hasAttribute('disabled'))),
-      addToCartButton
-    )
     await addToCartButton.click()
   }
 
@@ -72,16 +68,49 @@ export class ProductsPage {
     await this.closeCheckoutButton.click()
   }
 
-  async getItemsAmount() {
-    return await this.addToCartButtons.count()
-  }
-
   async clickFilterBySize(size: string) {
     await this.page.waitForSelector(`text=${size}`, { state: 'visible' })
     await this.sizeFilter(size).click()
   }
 
   async fetchCartAmount() {
-    return await this.cartAmount.textContent()
+    return await this.cartQuantity.textContent()
+  }
+
+  async getItemsAmount() {
+    return await this.addToCartButtons.count()
+  }
+
+  async addMultipleItemsToCart(count: number) {
+    const itemsCount = await this.getItemsAmount()
+    console.log(`Total items available: ${itemsCount}`)
+
+    for (let i = 0; i < Math.min(count, itemsCount); i++) {
+      console.log(`Adding item ${i + 1} to the cart`)
+      await this.clickAddToCartButton(i)
+      await this.clickCloseCheckoutButton()
+    }
+  }
+
+  async openCart() {
+    await this.cartButton.click()
+  }
+
+  async removeMultipleItems(count: number) {
+    const itemsCount = await this.removeButton.count() // Count the total number of remove buttons
+
+    // Loop over the items and remove them one by one
+    for (let i = 0; i < Math.min(count, itemsCount); i++) {
+      console.log(`Removing item ${i + 1} from the cart`)
+
+      // Wait for the remove button to be visible and clickable
+      const currentRemoveButton = this.removeButton.nth(0) // Always target the first button since the DOM is dynamic
+
+      await currentRemoveButton.waitFor({ state: 'visible' }) // Ensure the button is visible
+      await currentRemoveButton.click() // Click the button to remove the item
+
+      // Optionally, you can wait for the item to be removed, for example, by checking that the button count decreases
+      await this.page.waitForTimeout(500) // Add a small delay to allow the DOM to update after each removal
+    }
   }
 }
