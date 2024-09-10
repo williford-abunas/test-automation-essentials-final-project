@@ -12,7 +12,7 @@ export class ProductsPage {
   readonly addToCartButtons: Locator
   readonly closeCheckoutButton: Locator
   readonly cartQuantity: Locator
-  readonly productPriceTexts: Locator
+  readonly productPriceText: Locator
   readonly cartButton: Locator
   readonly productCountText: Locator
   readonly checkoutButton: Locator
@@ -20,15 +20,16 @@ export class ProductsPage {
   readonly subtractButton: Locator
   readonly addButton: Locator
   readonly removeButton: Locator
+  readonly totalPriceText: Locator
 
   // Constructor to initialize the page object with a Playwright page ===============
   constructor(page: Page) {
     this.page = page
     this.addToCartButtons = page.getByRole('button', { name: 'Add to cart' })
     this.closeCheckoutButton = page.getByRole('button', { name: 'X' })
-    this.checkoutButton = page.getByRole('button', { name: 'Checkout' })
+    this.checkoutButton = page.locator('button:has-text("Checkout")')
     this.cartQuantity = page.locator('.sc-1h98xa9-3')
-    this.productPriceTexts = page.locator('.sc-11uohgb-4 p')
+    this.productPriceText = page.locator('.sc-11uohgb-4 p')
     this.productCountText = page.locator('text=/\\d+ Product\\(s\\) found/')
     this.subtractButton = page.getByRole('button', { name: '-', exact: true })
     this.addButton = page.getByRole('button', { name: '+', exact: true })
@@ -38,6 +39,7 @@ export class ProductsPage {
     this.cartButton = page.locator(
       'button:has(div[title="Products in cart quantity"])'
     )
+    this.totalPriceText = page.locator('p.sc-1h98xa9-9.jzywDV')
   }
 
   // Methods ==========================================================================
@@ -52,14 +54,12 @@ export class ProductsPage {
   }
 
   async clickAddToCartButton(index: number) {
-    // await this.page.waitForLoadState('domcontentloaded')
     const addToCartButton = this.addToCartButtons.nth(index)
     await addToCartButton.waitFor({ state: 'visible' })
     await addToCartButton.click()
   }
 
   async clickCheckoutButton() {
-    await this.checkoutButton.waitFor({ state: 'visible' })
     await this.checkoutButton.click()
   }
 
@@ -73,7 +73,7 @@ export class ProductsPage {
     await this.sizeFilter(size).click()
   }
 
-  async fetchCartAmount() {
+  async fetchCartQuantity() {
     return await this.cartQuantity.textContent()
   }
 
@@ -82,6 +82,8 @@ export class ProductsPage {
   }
 
   async addMultipleItemsToCart(count: number) {
+    await this.page.waitForLoadState('domcontentloaded')
+
     const itemsCount = await this.getItemsAmount()
     console.log(`Total items available: ${itemsCount}`)
 
@@ -112,5 +114,34 @@ export class ProductsPage {
       // Optionally, you can wait for the item to be removed, for example, by checking that the button count decreases
       await this.page.waitForTimeout(500) // Add a small delay to allow the DOM to update after each removal
     }
+  }
+
+  async addItemPrices() {
+    const allPriceTexts = await this.productPriceText.allTextContents()
+    console.log(allPriceTexts)
+
+    // Use reduce to sum the prices
+    const total = allPriceTexts.reduce((acc, price) => {
+      const numericPrice = this.convertPriceStringToNumber(price)
+
+      // Add to the accumulator
+      return acc + numericPrice
+    }, 0)
+
+    return total
+  }
+
+  async getTotalPrice() {
+    const totalPrice = await this.totalPriceText.textContent()
+    return this.convertPriceStringToNumber(totalPrice)
+  }
+
+  // Helper to convert price string to number
+  convertPriceStringToNumber(priceText: string | null): number {
+    if (!priceText) {
+      return 0
+    }
+    // Remove dollar sign, trim spaces, then conver to number
+    return parseFloat(priceText.replace('$', '').trim())
   }
 }
