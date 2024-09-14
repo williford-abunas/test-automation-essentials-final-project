@@ -21,6 +21,7 @@ export class ProductsPage {
   readonly addButton: Locator
   readonly removeButton: Locator
   readonly totalPriceText: Locator
+  readonly quantityElement: Locator
 
   // Constructor to initialize the page object with a Playwright page ===============
   constructor(page: Page) {
@@ -40,6 +41,7 @@ export class ProductsPage {
       'button:has(div[title="Products in cart quantity"])'
     )
     this.totalPriceText = page.locator('p.sc-1h98xa9-9.jzywDV')
+    this.quantityElement = page.locator('p.sc-11uohgb-3.gKtloF')
   }
 
   // Methods ==========================================================================
@@ -59,13 +61,13 @@ export class ProductsPage {
     await addToCartButton.click()
   }
 
-  async clickCheckoutButton() {
-    await this.checkoutButton.click()
-  }
-
   async clickCloseCheckoutButton() {
     await this.closeCheckoutButton.waitFor({ state: 'visible' })
     await this.closeCheckoutButton.click()
+  }
+
+  async clickCheckoutButton() {
+    await this.checkoutButton.click()
   }
 
   async clickFilterBySize(size: string) {
@@ -141,7 +143,18 @@ export class ProductsPage {
     if (!priceText) {
       return 0
     }
-    // Remove dollar sign, trim spaces, then conver to number
+    // Remove dollar sign, trim spaces, then convert to number
     return parseFloat(priceText.replace('$', '').trim())
+  }
+
+  async addRandomProducts(randomNum: number, itemsCount: number) {
+    await this.page.waitForLoadState('domcontentloaded')
+
+    for (let i = 0; i < randomNum; i++) {
+      const randomProductIndex = Math.floor(Math.random() * itemsCount)
+      console.log(`random index: ${randomProductIndex}`)
+      await this.clickAddToCartButton(randomProductIndex)
+      await this.clickCloseCheckoutButton()
+    }
   }
 }

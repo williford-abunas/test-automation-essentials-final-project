@@ -107,4 +107,24 @@ test.describe('E commerce web app', () => {
       expect(dialogTriggered).toBe(true)
     })
   })
+
+  // Adding random amount of randomly selected product - EXTRA CHALLENGE!
+  test('Add any amount of any product and verify in the cart', async ({
+    page,
+  }) => {
+    const itemsCount = await productsPage.getItemsAmount()
+    let randomCount = Math.floor(Math.random() * itemsCount)
+    while (randomCount === 0) {
+      randomCount = Math.floor(Math.random() * itemsCount)
+    }
+
+    console.log(`random amount: ${randomCount}`)
+    await test.step('I can add any amount of any product', async () => {
+      await productsPage.addRandomProducts(randomCount, itemsCount)
+    })
+    await test.step('I can verify the correct quantity in the cart', async () => {
+      const cartQuantity = await productsPage.fetchCartQuantity()
+      expect(cartQuantity).toBe(`${randomCount}`)
+    })
+  })
 })
