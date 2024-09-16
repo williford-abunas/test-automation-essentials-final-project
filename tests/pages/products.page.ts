@@ -101,7 +101,7 @@ export class ProductsPage {
   }
 
   async removeMultipleItems(count: number) {
-    const itemsCount = await this.removeButton.count() // Count the total number of remove buttons
+    let itemsCount = await this.removeButton.count() // Count the total number of remove buttons
 
     // Loop over the items and remove them one by one
     for (let i = 0; i < Math.min(count, itemsCount); i++) {
@@ -112,9 +112,6 @@ export class ProductsPage {
 
       await currentRemoveButton.waitFor({ state: 'visible' }) // Ensure the button is visible
       await currentRemoveButton.click() // Click the button to remove the item
-
-      // Optionally, you can wait for the item to be removed, for example, by checking that the button count decreases
-      await this.page.waitForTimeout(500) // Add a small delay to allow the DOM to update after each removal
     }
   }
 

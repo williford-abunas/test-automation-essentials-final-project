@@ -109,10 +109,10 @@ test.describe('E commerce web app', () => {
   })
 
   // Adding random amount of randomly selected product - EXTRA CHALLENGE!
-  test('Add any amount of any product and verify in the cart', async ({
+  test('Add any amount of any product (>=10) and verify in the cart', async ({
     page,
   }) => {
-    const itemsCount = await productsPage.getItemsAmount()
+    const itemsCount = 10
     let randomCount = Math.floor(Math.random() * itemsCount)
     while (randomCount === 0) {
       randomCount = Math.floor(Math.random() * itemsCount)
