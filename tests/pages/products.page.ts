@@ -67,6 +67,7 @@ export class ProductsPage {
   }
 
   async clickCheckoutButton() {
+    await this.checkoutButton.waitFor({ state: 'visible' })
     await this.checkoutButton.click()
   }
 
