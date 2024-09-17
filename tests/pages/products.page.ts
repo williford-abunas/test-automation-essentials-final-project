@@ -53,11 +53,11 @@ export class ProductsPage {
     }
 
     await this.page.goto(baseURL)
+    await this.page.waitForTimeout(1000)
   }
 
   async clickAddToCartButton(index: number) {
     const addToCartButton = this.addToCartButtons.nth(index)
-    await addToCartButton.waitFor({ state: 'visible' })
     await addToCartButton.click()
   }
 
