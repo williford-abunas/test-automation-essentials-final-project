@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { ProductsPage } from './pages/products.page.ts'
+import { ProductsPage } from '../pages/products.page.ts'
 
 test.describe('E commerce web app', () => {
   let productsPage: ProductsPage
@@ -10,36 +10,44 @@ test.describe('E commerce web app', () => {
   })
 
   test('UI - Validate two shirts with size S', async ({ page }) => {
-    await test.step('Filter by size S and validate the count', async () => {
+    await test.step('Given I filter the products by size "S"', async () => {
       await productsPage.clickFilterBySize('S')
+    })
+
+    await test.step('Then I verify that the correct number of products is displayed', async () => {
       const itemsList = productsPage.addToCartButtons
-      // Wait until the number of visible items is 2
       await expect(itemsList).toHaveCount(2)
       const itemCount = await itemsList.count()
       console.log(`Number of elements in the list: ${itemCount}`)
-      // Validate
       expect(itemCount).toBe(2)
     })
   })
 
   test('API - Validate two shirts with size S', async ({ request }) => {
-    // Fetch products from API
-    const response = await request.get(
-      'https://react-shopping-cart-67954.firebaseio.com/products.json',
-      { headers: { Accept: 'application/json' } }
-    )
-    // Validate the response & parse it
-    expect(response.status()).toBe(200)
-    const responseBody = (await response.json()) as {
-      products: { availableSizes: string[]; title: string }[]
-    }
-    // Filter product by size S
-    const sizeSProducts = responseBody.products.filter((prod) =>
-      prod.availableSizes.includes('S')
-    )
-    // Validate API response count
-    expect(sizeSProducts.length).toBe(2)
-    console.log(responseBody)
+    await test.step('When I fetch the products from the API', async () => {
+      const response = await request.get(
+        'https://react-shopping-cart-67954.firebaseio.com/products.json',
+        { headers: { Accept: 'application/json' } }
+      )
+
+      expect(response.status()).toBe(200)
+    })
+
+    await test.step('Then I parse the response and filter by size "S"', async () => {
+      const response = await request.get(
+        'https://react-shopping-cart-67954.firebaseio.com/products.json',
+        { headers: { Accept: 'application/json' } }
+      )
+      const responseBody = (await response.json()) as {
+        products: { availableSizes: string[]; title: string }[]
+      }
+
+      const sizeSProducts = responseBody.products.filter((prod) =>
+        prod.availableSizes.includes('S')
+      )
+
+      expect(sizeSProducts.length).toBe(2)
+    })
   })
 
   test('Adding 5 items to the cart, validate count and total price', async ({
@@ -66,13 +74,13 @@ test.describe('E commerce web app', () => {
   })
 
   test('Successfully remove a product from the cart', async ({ page }) => {
-    await test.step('Add 5 items to the cart and verify', async () => {
+    await test.step('Given I add 5 items to the cart', async () => {
       await productsPage.addMultipleItemsToCart(5)
       const cartAmount = await productsPage.fetchCartQuantity()
       expect(cartAmount).toBe('5')
     })
 
-    await test.step('Remove product and verify', async () => {
+    await test.step('When I open the cart I can remove the same number of product', async () => {
       await productsPage.openCart()
       await productsPage.removeMultipleItems(5)
       const cartAmount = await productsPage.fetchCartQuantity()
@@ -85,13 +93,11 @@ test.describe('E commerce web app', () => {
       await productsPage.addMultipleItemsToCart(2)
     })
 
-    await test.step('Checkout dialog should display correct subtotal', async () => {
-      // Make sure cart is open
+    await test.step('The checkout dialog should display correct subtotal', async () => {
       await productsPage.openCart()
       const totalPrice = await productsPage.getTotalPrice()
       console.log(`Expected Total Price: ${totalPrice}`)
 
-      // Register the dialog listener before clicking the checkout button
       let dialogTriggered = false
       page.on('dialog', async (dialog) => {
         dialogTriggered = true
@@ -100,16 +106,13 @@ test.describe('E commerce web app', () => {
         await dialog.accept()
       })
 
-      // Click the checkout button and trigger the dialog
       await productsPage.clickCheckoutButton()
 
-      // Verify if the dialog was triggered
       expect(dialogTriggered).toBe(true)
     })
   })
 
-  // Adding random amount of randomly selected product - EXTRA CHALLENGE!
-  test('Add any amount of any product (>=10) and verify in the cart', async ({
+  test('Adding any amount of any product (>=10) and verify in the cart', async ({
     page,
   }) => {
     const itemsCount = 10
@@ -119,7 +122,7 @@ test.describe('E commerce web app', () => {
     }
 
     console.log(`random amount: ${randomCount}`)
-    await test.step('I can add any amount of any product', async () => {
+    await test.step('I can add any number of any product', async () => {
       await productsPage.addRandomProducts(randomCount, itemsCount)
     })
     await test.step('I can verify the correct quantity in the cart', async () => {
