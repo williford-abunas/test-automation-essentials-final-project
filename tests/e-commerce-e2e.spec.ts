@@ -7,6 +7,7 @@ test.describe('E commerce web app', () => {
   test.beforeEach(async ({ page }) => {
     productsPage = new ProductsPage(page)
     await productsPage.navigateToShop()
+    console.log('Logged in as ' + process.env.USERNAME)
   })
 
   test('UI - Validate two shirts with size S', async ({ page }) => {

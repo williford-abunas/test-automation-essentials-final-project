@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "env:test": "NODE_ENV=testing playwright test",
+    "env:dev": "NODE_ENV=development playwright test"
   },
   "keywords": [],
   "author": "",
